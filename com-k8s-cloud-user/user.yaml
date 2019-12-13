@@ -1,0 +1,40 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: user
+  namespace: default
+  labels:
+    app: user
+spec:
+  replicas: 3
+   strategy:
+    rollingUpdate:  ##由于replicas为3,则整个升级,pod个数在2-4个之间
+      maxSurge: 1      #滚动升级时会先启动1个pod
+      maxUnavailable: 1 #滚动升级时允许的最大Unavailable的pod个数
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      containers:
+      - name: user
+        image: user
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: userport
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user
+  namespace: default
+spec:
+  type: NodePort
+  selector:
+    app: user
+  ports:
+  - name: userserviceport
+    protocol: TCP
+    port: 8080
+    targetPort: userport
